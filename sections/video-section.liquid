@@ -1,147 +1,287 @@
-<!-- Section with the swinging effect -->
-<section class="video-section">
-  <div class="video-container container">
-    <button id="play-pause-btn" class="play-pause-btn">
-      <i class="fas fa-pause"></i> <!-- Icon instead of text -->
-    </button>
-    <video id="autoplay-video" class="cards video" autoplay muted loop>
-      {% if section.settings.video_file != blank %}
-        <source src="{{ section.settings.video_file | video_url }}" type="video/mp4">
-      {% elsif section.settings.video_url != blank %}
-        <source src="{{ section.settings.video_url }}" type="video/mp4">
-      {% else %}
-        <p>Your browser does not support the video tag.</p>
+{{ 'video-section.css' | asset_url | stylesheet_tag }}
+{{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  /* Swinging effect */
+  .swing-effect {
+    animation: swing 2s ease-in-out infinite;
+    transform-origin: top center;
+  }
+
+  @keyframes swing {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  /* Adjusting video frame to apply swinging effect */
+  .video-section__media.swinging {
+    transform-origin: top center;
+    animation: swing 2s ease-in-out infinite;
+  }
+
+{%- endstyle -%}
+
+{%- liquid
+  assign video_id = section.settings.video.id | default: section.settings.video_url.id
+  assign video_alt = section.settings.video.alt | default: section.settings.description
+  assign alt = 'sections.video.load_video' | t: description: video_alt | escape
+  assign poster = section.settings.video.preview_image | default: section.settings.cover_image
+
+  if section.settings.video != null
+    assign ratio_diff = section.settings.video.aspect_ratio | minus: poster.aspect_ratio | abs
+    if ratio_diff < 0.01 and ratio_diff > 0
+      assign fix_ratio = true
+    endif
+  endif
+-%}
+
+{%- capture sizes -%}
+  {% if section.settings.full_width -%}
+    100vw
+  {%- else -%}
+    (min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 }}px, (min-width: 750px)
+    calc(100vw - 10rem), 100vw
+  {%- endif %}
+{%- endcapture -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="video-section isolate{% unless section.settings.full_width %} page-width{% endunless %} section-{{ section.id }}-padding">
+    <div
+      {% if section.settings.full_width %}
+        class="page-width"
       {% endif %}
-    </video>
+    >
+      {%- unless section.settings.heading == blank -%}
+        <div class="title-wrapper title-wrapper--no-top-margin{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+          <h2 class="title inline-richtext {{ section.settings.heading_size }}">{{ section.settings.heading }}</h2>
+        </div>
+      {%- endunless -%}
+    </div>
+    <deferred-media
+      class="video-section__media swinging deferred-media gradient global-media-settings{% if section.settings.full_width %} global-media-settings--full-width{% endif %}{% if fix_ratio %} media-fit-cover{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+      data-media-id="{{ video_id }}"
+      {% if poster != null %}
+        style="--ratio-percent: {{ 1 | divided_by: poster.aspect_ratio | times: 100 }}%;"
+      {% endif %}
+    >
+      <button
+        id="Deferred-Poster-Modal-{{ video_id }}"
+        class="video-section__poster media deferred-media__poster media--landscape swing-effect"
+        type="button"
+        aria-label="{{ alt }}"
+      >
+        {%- if poster != null -%}
+          {{
+            poster
+            | image_url: width: 3840
+            | image_tag: sizes: sizes, widths: '375, 750, 1100, 1500, 1780, 2000, 3000, 3840', alt: alt
+          }}
+        {%- else -%}
+          {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg placeholder' }}
+        {%- endif -%}
+        <span class="deferred-media__poster-button motion-reduce">
+          {%- render 'icon-play' -%}
+        </span>
+      </button>
+      <template>
+        {%- if section.settings.video == null and section.settings.video_url != null -%}
+          {%- liquid
+            assign loop = ''
+            if section.settings.enable_video_looping
+              assign loop = '&loop=1&playlist=' | append: video_id
+            endif
+          -%}
+          {%- if section.settings.video_url.type == 'youtube' -%}
+            <iframe
+              src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&autoplay=1{{ loop }}"
+              class="js-youtube"
+              allow="autoplay; encrypted-media"
+              allowfullscreen
+              title="{{ section.settings.description | escape }}"
+            ></iframe>
+          {%- else -%}
+            <iframe
+              src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1{{ loop }}"
+              class="js-vimeo"
+              allow="autoplay; encrypted-media"
+              allowfullscreen
+              title="{{ section.settings.description | escape }}"
+            ></iframe>
+          {%- endif -%}
+        {%- else -%}
+          {{
+            section.settings.video
+            | video_tag:
+              image_size: '1100x',
+              autoplay: true,
+              loop: section.settings.enable_video_looping,
+              controls: true,
+              muted: false
+          }}
+        {%- endif -%}
+      </template>
+    </deferred-media>
   </div>
-</section>
+</div>
 
-<!-- Add FontAwesome link for icons -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
-<style>
-  .container {
-    perspective: 1000px; /* For the 3D effect */
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-  }
-
-  .cards {
-    width: 100%;  /* Video now fits full width */
-    height: 100%; /* Video now fits full height */
-    background-color: white;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    transition: transform 0.1s ease-out;
-    transform-style: preserve-3d;
-    transform-origin: center;
-    will-change: transform;
-  }
-
-  .play-pause-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px; /* Moved button to the right */
-    z-index: 10;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 50%; /* Circular button */
-    cursor: pointer;
-  }
-
-  .play-pause-btn:hover {
-    background-color: rgba(0, 0, 0, 0.9);
-  }
-
-  .play-pause-btn i {
-    font-size: 16px;
-    color: white;
-  }
-
-  .cards video {
-    width: 100%;
-    height: 100%; /* Video fills container */
-    border-radius: 10px;
-    object-fit: cover; /* Ensures the video fits well */
-  }
-</style>
-
-<script>
-  const video = document.getElementById('autoplay-video');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  const icon = playPauseBtn.querySelector('i');
-
-  // Play/Pause button functionality
-  playPauseBtn.addEventListener('click', () => {
-    if (video.paused) {
-      video.play();
-      icon.classList.remove('fa-play');
-      icon.classList.add('fa-pause');
-    } else {
-      video.pause();
-      icon.classList.remove('fa-pause');
-      icon.classList.add('fa-play');
-    }
-  });
-
-  // Get the size of the card
-  const card = document.querySelector('.cards');
-  const container = document.querySelector('.container');
-
-  // Add a scroll event listener
-  window.addEventListener('scroll', () => {
-    const rect = container.getBoundingClientRect();
-
-    // Calculate the percentage of the card in the viewport
-    const scrollPos = window.scrollY;
-    const containerTop = container.offsetTop;
-    const containerHeight = container.offsetHeight;
-
-    // If the container is visible in the viewport, adjust the card rotation
-    if (scrollPos >= containerTop && scrollPos <= containerTop + containerHeight) {
-      // Calculate how far you've scrolled within the container's height
-      const yPos = (scrollPos - containerTop) / containerHeight;
-
-      // Set the rotation angle for the X-axis (based on scroll)
-      const xRotate = (yPos - 0.5) * -40; // Adjust tilt intensity here
-      card.style.transform = `rotateX(${xRotate}deg)`;
-    }
-
-    // If the card is out of view, reset the rotation
-    if (rect.top > window.innerHeight || rect.bottom < 0) {
-      // Reset to original position when the card is not visible
-      card.style.transform = 'rotateX(0deg)';
-    }
-  });
-</script>
-
-<!-- Schema to define video settings -->
 {% schema %}
 {
-  "name": "video-section",
+  "name": "t:sections.video.name",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
   "settings": [
     {
-      "type": "url",
-      "id": "video_url",
-      "label": "Video URL"
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "t:sections.video.settings.heading.default",
+      "label": "t:sections.video.settings.heading.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "t:sections.all.heading_size.options__1.label"
+        },
+        {
+          "value": "h1",
+          "label": "t:sections.all.heading_size.options__2.label"
+        },
+        {
+          "value": "h0",
+          "label": "t:sections.all.heading_size.options__3.label"
+        },
+        {
+          "value": "hxl",
+          "label": "t:sections.all.heading_size.options__4.label"
+        },
+        {
+          "value": "hxxl",
+          "label": "t:sections.all.heading_size.options__5.label"
+        }
+      ],
+      "default": "h1",
+      "label": "t:sections.all.heading_size.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_video_looping",
+      "label": "t:sections.video.settings.enable_video_looping.label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:sections.video.settings.header__1.content"
     },
     {
       "type": "video",
-      "id": "video_file",
-      "label": "Upload Video File"
+      "id": "video",
+      "label": "t:sections.video.settings.video.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.video.settings.header__2.content"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:sections.video.settings.paragraph.content"
+    },
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "accept": ["youtube", "vimeo"],
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+      "label": "t:sections.video.settings.video_url.label", 
+      "info": "t:sections.video.settings.video_url.info"
     },
     {
       "type": "image_picker",
       "id": "cover_image",
-      "label": "Cover Image"
+      "label": "t:sections.video.settings.cover_image.label"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "t:sections.video.settings.description.label",
+      "info": "t:sections.video.settings.description.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.video.settings.header__3.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:sections.video.settings.full_width.label",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:sections.all.padding_top.label",
+      "min": 0,
+      "max": 100,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:sections.all.padding_bottom.label",
+      "min": 0,
+      "max": 100,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:sections.all.color_scheme.label",
+      "options": [
+        {
+          "value": "background-1",
+          "label": "t:sections.all.color_scheme.options__1.label"
+        },
+        {
+          "value": "background-2",
+          "label": "t:sections.all.color_scheme.options__2.label"
+        },
+        {
+          "value": "background-3",
+          "label": "t:sections.all.color_scheme.options__3.label"
+        },
+        {
+          "value": "inverse",
+          "label": "t:sections.all.color_scheme.options__4.label"
+        }
+      ],
+      "default": "background-1"
     }
   ],
-  "presets": [{
-    "name": "Default video-section"
-  }],
-  "class": "video-section"
+  "presets": [
+    {
+      "name": "t:sections.video.presets.name",
+      "category": "t:sections.video.presets.category"
+    }
+  ]
 }
 {% endschema %}
