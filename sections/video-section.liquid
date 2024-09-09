@@ -2,17 +2,17 @@
 {{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
 
 {%- style -%}
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
+.section-{{ section.id }}-padding {
+  padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+  padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+}
 
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
+@media screen and (min-width: 750px) {
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
   }
+}
 
 .container {
   perspective: 1000px; /* For the 3D effect */
@@ -22,8 +22,8 @@
 }
 
 .cards {
-  width: 100%;  /* Video now fits full width */
-  height: 100%; /* Video now fits full height */
+  width: 100%;  /* Video fits full width */
+  height: 100%; /* Video fits full height */
   background-color: white;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
@@ -61,15 +61,14 @@
   border-radius: 10px;
   object-fit: cover; /* Ensures the video fits well */
 }
-
 {%- endstyle -%}
+
 
 {%- liquid
   assign video_id = section.settings.video.id | default: section.settings.video_url.id
   assign video_alt = section.settings.video.alt | default: section.settings.description
   assign alt = 'sections.video.load_video' | t: description: video_alt | escape
   assign poster = section.settings.video.preview_image | default: section.settings.cover_image
-
   if section.settings.video != null
     assign ratio_diff = section.settings.video.aspect_ratio | minus: poster.aspect_ratio | abs
     if ratio_diff < 0.01 and ratio_diff > 0
@@ -78,30 +77,18 @@
   endif
 -%}
 
-{%- capture sizes -%}
-  {% if section.settings.full_width -%}
-    100vw
-  {%- else -%}
-    (min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 }}px, (min-width: 750px)
-    calc(100vw - 10rem), 100vw
-  {%- endif %}
-{%- endcapture -%}
-
 <div class="color-{{ section.settings.color_scheme }} gradient">
-  <div class="video-section isolate{% unless section.settings.full_width %} page-width{% endunless %} section-{{ section.id }}-padding">
-    <div
-      {% if section.settings.full_width %}
-        class="page-width"
-      {% endif %}
-    >
+  <div class="video-section isolate section-{{ section.id }}-padding">
+    <div>
       {%- unless section.settings.heading == blank -%}
-        <div class="title-wrapper title-wrapper--no-top-margin{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+        <div class="title-wrapper title-wrapper--no-top-margin">
           <h2 class="title inline-richtext {{ section.settings.heading_size }}">{{ section.settings.heading }}</h2>
         </div>
       {%- endunless -%}
     </div>
+
     <deferred-media
-      class="video-section__media swinging deferred-media gradient global-media-settings{% if section.settings.full_width %} global-media-settings--full-width{% endif %}{% if fix_ratio %} media-fit-cover{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+      class="video-section__media swinging deferred-media gradient global-media-settings"
       data-media-id="{{ video_id }}"
       {% if poster != null %}
         style="--ratio-percent: {{ 1 | divided_by: poster.aspect_ratio | times: 100 }}%;"
@@ -109,7 +96,7 @@
     >
       <button
         id="Deferred-Poster-Modal-{{ video_id }}"
-        class="video-section__poster media deferred-media__poster media--landscape swing-effect"
+        class="video-section__poster media deferred-media__poster swing-effect"
         type="button"
         aria-label="{{ alt }}"
       >
@@ -117,7 +104,7 @@
           {{
             poster
             | image_url: width: 3840
-            | image_tag: sizes: sizes, widths: '375, 750, 1100, 1500, 1780, 2000, 3000, 3840', alt: alt
+            | image_tag: sizes: '100vw', alt: alt
           }}
         {%- else -%}
           {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg placeholder' }}
@@ -126,6 +113,7 @@
           {%- render 'icon-play' -%}
         </span>
       </button>
+
       <template>
         {%- if section.settings.video == null and section.settings.video_url != null -%}
           {%- liquid
@@ -167,8 +155,9 @@
   </div>
 </div>
 
-      <script>
-const video = document.getElementById('autoplay-video');
+<script>
+  
+const video = document.querySelector('.js-youtube') || document.querySelector('.js-vimeo');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const icon = playPauseBtn.querySelector('i');
 
@@ -188,35 +177,25 @@ playPauseBtn.addEventListener('click', () => {
 // Get the size of the card
 const card = document.querySelector('.cards');
 const container = document.querySelector('.container');
-let lastXRotate = 0; // Variable to store the last X-axis rotation
 
 // Add a scroll event listener
 window.addEventListener('scroll', () => {
   const rect = container.getBoundingClientRect();
 
-  // Calculate the percentage of the card in the viewport
+  // Calculate how far you've scrolled within the container's height
   const scrollPos = window.scrollY;
   const containerTop = container.offsetTop;
   const containerHeight = container.offsetHeight;
 
-  // If the container is visible in the viewport, adjust the card rotation
   if (scrollPos >= containerTop && scrollPos <= containerTop + containerHeight) {
-    // Calculate how far you've scrolled within the container's height
     const yPos = (scrollPos - containerTop) / containerHeight;
-
-    // Set the rotation angle for the X-axis (based on scroll)
     const xRotate = (yPos - 0.5) * -40; // Adjust tilt intensity here
-    lastXRotate = xRotate;
-
-    // Apply the X-axis rotation to the card
     card.style.transform = `rotateX(${xRotate}deg)`;
   }
 
   // If the card is out of view, reset the rotation
   if (rect.top > window.innerHeight || rect.bottom < 0) {
-    // Reset to original position when the card is not visible
     card.style.transform = 'rotateX(0deg)';
-    lastXRotate = 0; // Reset the last rotation to default
   }
 });
 
