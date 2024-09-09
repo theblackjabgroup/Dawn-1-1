@@ -36,13 +36,13 @@
 .play-pause-btn {
   position: absolute;
   top: 20px;
-  right: 20px; /* Moved button to the right */
+  right: 20px;
   z-index: 10;
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
   padding: 10px;
-  border-radius: 50%; /* Circular button */
+  border-radius: 50%;
   cursor: pointer;
 }
 
@@ -57,10 +57,11 @@
 
 .cards video {
   width: 100%;
-  height: 100%; /* Video fills container */
+  height: 100%;
   border-radius: 10px;
-  object-fit: cover; /* Ensures the video fits well */
+  object-fit: cover;
 }
+
 {%- endstyle -%}
 
 
@@ -157,7 +158,7 @@
 
 <script>
   
-const video = document.querySelector('.js-youtube') || document.querySelector('.js-vimeo');
+const video = document.getElementById('autoplay-video');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const icon = playPauseBtn.querySelector('i');
 
@@ -174,31 +175,34 @@ playPauseBtn.addEventListener('click', () => {
   }
 });
 
-// Get the size of the card
+// Get the size of the card and container
 const card = document.querySelector('.cards');
 const container = document.querySelector('.container');
+let lastXRotate = 0; // Variable to store the last X-axis rotation
 
 // Add a scroll event listener
 window.addEventListener('scroll', () => {
   const rect = container.getBoundingClientRect();
 
-  // Calculate how far you've scrolled within the container's height
+  // Calculate the percentage of the card in the viewport
   const scrollPos = window.scrollY;
   const containerTop = container.offsetTop;
   const containerHeight = container.offsetHeight;
 
+  // Adjust card rotation if visible in the viewport
   if (scrollPos >= containerTop && scrollPos <= containerTop + containerHeight) {
     const yPos = (scrollPos - containerTop) / containerHeight;
     const xRotate = (yPos - 0.5) * -40; // Adjust tilt intensity here
+    lastXRotate = xRotate;
     card.style.transform = `rotateX(${xRotate}deg)`;
   }
 
-  // If the card is out of view, reset the rotation
+  // Reset rotation when the card is out of view
   if (rect.top > window.innerHeight || rect.bottom < 0) {
     card.style.transform = 'rotateX(0deg)';
+    lastXRotate = 0;
   }
 });
-
 
 </script>
 
