@@ -1,6 +1,122 @@
-{% schema %}
-  {
-    "name": "Section name",
-    "settings": []
+<section class="video-section">
+  <div class="video-container container">
+    <button id="play-pause-btn" class="play-pause-btn">
+      <i class="fas fa-pause"></i> <!-- Icon instead of text -->
+    </button>
+
+    <video id="autoplay-video" class="cards video" autoplay muted loop poster="{{ section.settings.cover_image | image_url }}">
+      {% if section.settings.video_file != blank %}
+        <source src="{{ section.settings.video_file | video_url }}" type="video/mp4">
+      {% elsif section.settings.video_url != blank %}
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      {% else %}
+        <p>Your browser does not support the video tag.</p>
+      {% endif %}
+    </video>
+  </div>
+</section>
+
+<!-- FontAwesome for play/pause button icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+<style>
+.container {
+  perspective: 1000px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.cards {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  transition: transform 0.1s ease-out;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.play-pause-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.play-pause-btn:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.play-pause-btn i {
+  font-size: 16px;
+}
+
+.cards video {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+</style>
+
+<script>
+const video = document.getElementById('autoplay-video');
+const playPauseBtn = document.getElementById('play-pause-btn');
+const icon = playPauseBtn.querySelector('i');
+
+// Play/Pause button functionality
+playPauseBtn.addEventListener('click', () => {
+  if (video.paused) {
+    video.play();
+    icon.classList.remove('fa-play');
+    icon.classList.add('fa-pause');
+  } else {
+    video.pause();
+    icon.classList.remove('fa-pause');
+    icon.classList.add('fa-play');
   }
+});
+</script>
+
+
+
+
+{% schema %}
+{
+  "name": "Video Section",
+  "settings": [
+    {
+      "type": "video_url",
+      "id": "video_url",
+      "accept": ["youtube", "vimeo"],
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+      "label": "t:sections.video.settings.video_url.label",
+      "info": "t:sections.video.settings.video_url.info"
+    },
+    {
+      "type": "video",
+      "id": "video_file",
+      "label": "Upload Video File"
+    },
+    {
+      "type": "image_picker",
+      "id": "cover_image",
+      "label": "Cover Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Default Video Section"
+    }
+  ]
+}
 {% endschema %}
