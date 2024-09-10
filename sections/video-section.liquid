@@ -50,7 +50,7 @@
   
   {%- liquid
   assign video_id = video-section.settings.video.id | default: section.settings.video_url.id
-  assign video_alt = section.settings.video.alt | default: section.settings.description
+  assign video_alt = video-section.settings.video.alt | default: section.settings.description
   assign poster = section.settings.video.preview_image | default: section.settings.cover_image
 
   if section.settings.video != null
