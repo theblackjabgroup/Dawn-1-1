@@ -58,9 +58,7 @@
     "video_section_UpJM6z": {
       "type": "video-section",
       "settings": {
-        "video_file": "shopify:\/\/files\/videos\/Webflow Designer.webm",
-        "video_url": "https:\/\/www.youtube.com\/watch?v=7Z14gnfhQgA&ab_channel=ProWebCoder%7CShopifyExpert",
-        "cover_image": "shopify:\/\/shop_images\/buddha-bracelet-for-men_9635c352-db6f-4556-8ef4-a33096ee2bc3.jpg"
+        "video_url": "https:\/\/www.youtube.com\/watch?v=7Z14gnfhQgA&ab_channel=ProWebCoder%7CShopifyExpert"
       }
     }
   },
