@@ -71,7 +71,7 @@
           {%- endif -%}
         {%- else -%}
           <video id="autoplay-video" autoplay loop muted>
-            <source src="{{ section.settings.video_file | file_url }}" type="video/mp4">
+            <source src="{{ video-section.settings.video_file | file_url }}" type="video/mp4">
           </video>
         {%- endif -%}
       </div>
