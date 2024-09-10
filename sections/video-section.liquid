@@ -1,6 +1,3 @@
-{{ 'video-section.css' | asset_url | stylesheet_tag }}
-{{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
-
 {%- style -%}
 .section-{{ section.id }}-padding {
   padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
@@ -65,19 +62,6 @@
 {%- endstyle -%}
 
 
-{%- liquid
-  assign video_id = section.settings.video.id | default: section.settings.video_url.id
-  assign video_alt = section.settings.video.alt | default: section.settings.description
-  assign alt = 'sections.video.load_video' | t: description: video_alt | escape
-  assign poster = section.settings.video.preview_image | default: section.settings.cover_image
-  if section.settings.video != null
-    assign ratio_diff = section.settings.video.aspect_ratio | minus: poster.aspect_ratio | abs
-    if ratio_diff < 0.01 and ratio_diff > 0
-      assign fix_ratio = true
-    endif
-  endif
--%}
-
 <div class="color-{{ section.settings.color_scheme }} gradient">
   <div class="video-section isolate section-{{ section.id }}-padding">
     <div>
@@ -88,73 +72,25 @@
       {%- endunless -%}
     </div>
 
-    <deferred-media
-      class="video-section__media swinging deferred-media gradient global-media-settings"
-      data-media-id="{{ video_id }}"
-      {% if poster != null %}
-        style="--ratio-percent: {{ 1 | divided_by: poster.aspect_ratio | times: 100 }}%;"
+<section class="video-section">
+  <div class="video-container container">
+    <button id="play-pause-btn" class="play-pause-btn">
+      <i class="fas fa-pause"></i> <!-- Icon instead of text -->
+    </button>
+    <video id="autoplay-video" class="cards video" autoplay muted loop>
+      {% if section.settings.video_file != blank %}
+        <source src="{{ section.settings.video_file | video_url }}" type="video/mp4">
+      {% elsif section.settings.video_url != blank %}
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      {% else %}
+        <p>Your browser does not support the video tag.</p>
       {% endif %}
-    >
-      <button
-        id="Deferred-Poster-Modal-{{ video_id }}"
-        class="video-section__poster media deferred-media__poster swing-effect"
-        type="button"
-        aria-label="{{ alt }}"
-      >
-        {%- if poster != null -%}
-          {{
-            poster
-            | image_url: width: 3840
-            | image_tag: sizes: '100vw', alt: alt
-          }}
-        {%- else -%}
-          {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg placeholder' }}
-        {%- endif -%}
-        <span class="deferred-media__poster-button motion-reduce">
-          {%- render 'icon-play' -%}
-        </span>
-      </button>
-
-      <template>
-        {%- if section.settings.video == null and section.settings.video_url != null -%}
-          {%- liquid
-            assign loop = ''
-            if section.settings.enable_video_looping
-              assign loop = '&loop=1&playlist=' | append: video_id
-            endif
-          -%}
-          {%- if section.settings.video_url.type == 'youtube' -%}
-            <iframe
-              src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1&autoplay=1{{ loop }}"
-              class="js-youtube"
-              allow="autoplay; encrypted-media"
-              allowfullscreen
-              title="{{ section.settings.description | escape }}"
-            ></iframe>
-          {%- else -%}
-            <iframe
-              src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1{{ loop }}"
-              class="js-vimeo"
-              allow="autoplay; encrypted-media"
-              allowfullscreen
-              title="{{ section.settings.description | escape }}"
-            ></iframe>
-          {%- endif -%}
-        {%- else -%}
-          {{
-            section.settings.video
-            | video_tag:
-              image_size: '1100x',
-              autoplay: true,
-              loop: section.settings.enable_video_looping,
-              controls: true,
-              muted: false
-          }}
-        {%- endif -%}
-      </template>
-    </deferred-media>
+    </video>
   </div>
-</div>
+</section>
+
+<!-- Add FontAwesome link for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <script>
   
