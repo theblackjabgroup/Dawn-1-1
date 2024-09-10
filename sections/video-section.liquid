@@ -54,7 +54,7 @@
         <i class="fas fa-pause"></i>
       </button>
       <div class="cards">
-        {%- if section.settings.video_url != blank -%}
+        {%- if video-section.settings.video_url != blank -%}
           {%- assign video_id = video-section.settings.video_url | split: "/" | last -%}
           {%- if video-section.settings.video_url contains 'youtube' -%}
             <iframe
