@@ -1,26 +1,14 @@
 {%- style -%}
-.section-{{ section.id }}-padding {
-  padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-  padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-}
-
-@media screen and (min-width: 750px) {
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top }}px;
-    padding-bottom: {{ section.settings.padding_bottom }}px;
-  }
-}
-
 .container {
-  perspective: 1000px; /* For the 3D effect */
+  perspective: 1000px; /* For the 3D swinging effect */
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
 }
 
 .cards {
-  width: 100%;  /* Video fits full width */
-  height: 100%; /* Video fits full height */
+  width: 100%;
+  height: auto;
   background-color: white;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
@@ -61,39 +49,29 @@
 
 {%- endstyle -%}
 
-
-<div class="color-{{ section.settings.color_scheme }} gradient">
-  <div class="video-section isolate section-{{ section.id }}-padding">
-    <div>
-      {%- unless section.settings.heading == blank -%}
-        <div class="title-wrapper title-wrapper--no-top-margin">
-          <h2 class="title inline-richtext {{ section.settings.heading_size }}">{{ section.settings.heading }}</h2>
-        </div>
-      {%- endunless -%}
-    </div>
-
-<section class="video-section">
+<div class="video-section">
   <div class="video-container container">
     <button id="play-pause-btn" class="play-pause-btn">
-      <i class="fas fa-pause"></i> <!-- Icon instead of text -->
+      <i class="fas fa-pause"></i>
     </button>
-    <video id="autoplay-video" class="cards video" autoplay muted loop>
-      {% if section.settings.video_file != blank %}
+    {% if section.settings.video_file != blank %}
+      <video id="autoplay-video" class="cards video" autoplay muted loop poster="{{ section.settings.cover_image | image_url }}">
         <source src="{{ section.settings.video_file | video_url }}" type="video/mp4">
-      {% elsif section.settings.video_url != blank %}
+        Your browser does not support the video tag.
+      </video>
+    {% elsif section.settings.video_url != blank %}
+      <video id="autoplay-video" class="cards video" autoplay muted loop poster="{{ section.settings.cover_image | image_url }}">
         <source src="{{ section.settings.video_url }}" type="video/mp4">
-      {% else %}
-        <p>Your browser does not support the video tag.</p>
-      {% endif %}
-    </video>
+        Your browser does not support the video tag.
+      </video>
+    {% endif %}
   </div>
-</section>
+</div>
 
-<!-- Add FontAwesome link for icons -->
+<!-- Add FontAwesome for icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <script>
-  
 const video = document.getElementById('autoplay-video');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const icon = playPauseBtn.querySelector('i');
@@ -111,179 +89,61 @@ playPauseBtn.addEventListener('click', () => {
   }
 });
 
-// Get the size of the card and container
+// Swinging effect on scroll
 const card = document.querySelector('.cards');
 const container = document.querySelector('.container');
-let lastXRotate = 0; // Variable to store the last X-axis rotation
+let lastXRotate = 0;
 
-// Add a scroll event listener
+// Add scroll event listener for swinging effect
 window.addEventListener('scroll', () => {
   const rect = container.getBoundingClientRect();
-
-  // Calculate the percentage of the card in the viewport
   const scrollPos = window.scrollY;
   const containerTop = container.offsetTop;
   const containerHeight = container.offsetHeight;
 
-  // Adjust card rotation if visible in the viewport
+  // Calculate swinging effect when the container is in view
   if (scrollPos >= containerTop && scrollPos <= containerTop + containerHeight) {
     const yPos = (scrollPos - containerTop) / containerHeight;
-    const xRotate = (yPos - 0.5) * -40; // Adjust tilt intensity here
+    const xRotate = (yPos - 0.5) * -40; // Adjust swinging intensity
     lastXRotate = xRotate;
     card.style.transform = `rotateX(${xRotate}deg)`;
   }
 
-  // Reset rotation when the card is out of view
+  // Reset rotation when the container is out of view
   if (rect.top > window.innerHeight || rect.bottom < 0) {
     card.style.transform = 'rotateX(0deg)';
     lastXRotate = 0;
   }
 });
-
 </script>
 
 {% schema %}
 {
-  "name": "t:sections.video.name",
-  "tag": "section",
-  "class": "video-section",
-  "disabled_on": {
-    "groups": ["header", "footer"]
-  },
+  "name": "Video Section",
   "settings": [
     {
-      "type": "inline_richtext",
-      "id": "heading",
-      "default": "t:sections.video.settings.heading.default",
-      "label": "t:sections.video.settings.heading.label"
-    },
-    {
-      "type": "select",
-      "id": "heading_size",
-      "options": [
-        {
-          "value": "h2",
-          "label": "t:sections.all.heading_size.options__1.label"
-        },
-        {
-          "value": "h1",
-          "label": "t:sections.all.heading_size.options__2.label"
-        },
-        {
-          "value": "h0",
-          "label": "t:sections.all.heading_size.options__3.label"
-        },
-        {
-          "value": "hxl",
-          "label": "t:sections.all.heading_size.options__4.label"
-        },
-        {
-          "value": "hxxl",
-          "label": "t:sections.all.heading_size.options__5.label"
-        }
-      ],
-      "default": "h1",
-      "label": "t:sections.all.heading_size.label"
-    },
-    {
-      "type": "checkbox",
-      "id": "enable_video_looping",
-      "label": "t:sections.video.settings.enable_video_looping.label",
-      "default": false
-    },
-    {
-      "type": "header",
-      "content": "t:sections.video.settings.header__1.content"
-    },
-    {
       "type": "video",
-      "id": "video",
-      "label": "t:sections.video.settings.video.label"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.video.settings.header__2.content"
-    },
-    {
-      "type": "paragraph",
-      "content": "t:sections.video.settings.paragraph.content"
+      "id": "video_file",
+      "label": "Upload Video"
     },
     {
       "type": "video_url",
       "id": "video_url",
       "accept": ["youtube", "vimeo"],
+      "label": "Video URL",
       "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
-      "label": "t:sections.video.settings.video_url.label", 
-      "info": "t:sections.video.settings.video_url.info"
+      "placeholder": "https://www.example.com/video.mp4"
     },
     {
       "type": "image_picker",
       "id": "cover_image",
-      "label": "t:sections.video.settings.cover_image.label"
-    },
-    {
-      "type": "text",
-      "id": "description",
-      "label": "t:sections.video.settings.description.label",
-      "info": "t:sections.video.settings.description.info"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.video.settings.header__3.content"
-    },
-    {
-      "type": "checkbox",
-      "id": "full_width",
-      "label": "t:sections.video.settings.full_width.label",
-      "default": false
-    },
-    {
-      "type": "range",
-      "id": "padding_top",
-      "label": "t:sections.all.padding_top.label",
-      "min": 0,
-      "max": 100,
-      "unit": "px",
-      "default": 36
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "label": "t:sections.all.padding_bottom.label",
-      "min": 0,
-      "max": 100,
-      "unit": "px",
-      "default": 36
-    },
-    {
-      "type": "select",
-      "id": "color_scheme",
-      "label": "t:sections.all.color_scheme.label",
-      "options": [
-        {
-          "value": "background-1",
-          "label": "t:sections.all.color_scheme.options__1.label"
-        },
-        {
-          "value": "background-2",
-          "label": "t:sections.all.color_scheme.options__2.label"
-        },
-        {
-          "value": "background-3",
-          "label": "t:sections.all.color_scheme.options__3.label"
-        },
-        {
-          "value": "inverse",
-          "label": "t:sections.all.color_scheme.options__4.label"
-        }
-      ],
-      "default": "background-1"
+      "label": "Cover Image"
     }
   ],
   "presets": [
     {
       "name": "Default video section",
-      "category": "t:sections.video.presets.category"
+      "category": "Video"
     }
   ]
 }
