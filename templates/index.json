@@ -16,6 +16,17 @@
         "color_scheme": ""
       }
     },
+    "scroll_tracking_widget_87GYzT": {
+      "type": "scroll-tracking-widget",
+      "settings": {
+        "widget_color": "#ffa500",
+        "title_color": "#000",
+        "widget_font_color": "#000",
+        "scrolling_distance_background": "#faebd7",
+        "widget_text_font": "assistant_n4",
+        "content_alignment": "center"
+      }
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -86,6 +97,7 @@
   },
   "order": [
     "product_variant_EHyGJN",
+    "scroll_tracking_widget_87GYzT",
     "image_banner",
     "featured_collection"
   ]
