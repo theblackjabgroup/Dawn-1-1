@@ -24,8 +24,8 @@
             "countdown_timer_val": "YYYY-MM-DD",
             "disable_desktop_view": false,
             "disable_mobile_view": false,
-            "text2": "",
-            "link2": ""
+            "text2": "SALE",
+            "link2": "shopify:\/\/collections"
           }
         },
         "announcement-bar-0": {
