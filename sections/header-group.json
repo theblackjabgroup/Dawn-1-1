@@ -17,9 +17,10 @@
         "announcement_n6WJKt": {
           "type": "announcement",
           "settings": {
-            "text": "Welcome to our store",
+            "image": "shopify:\/\/shop_images\/stacked-bracelets-set.jpg",
+            "text": "FIRST",
             "link": "",
-            "enable_countdown_timer": false,
+            "enable_countdown_timer": true,
             "countdown_timer_val": "YYYY-MM-DD",
             "disable_desktop_view": false,
             "disable_mobile_view": false,
